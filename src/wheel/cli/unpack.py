@@ -18,6 +18,13 @@ def unpack(path: str, dest: str = ".") -> None:
         namever = wf.parsed_filename.group("namever")
         destination = Path(dest) / namever
         print(f"Unpacking to: {destination}...", end="", flush=True)
-        wf.extractall(destination)
+        for zinfo in wf.filelist:
+            target_path = Path(wf.extract(zinfo, destination))
+
+            # Set permissions to the same values as they were set in the archive
+            # We have to do this manually due to
+            # https://github.com/python/cpython/issues/59999
+            permissions = zinfo.external_attr >> 16 & 0o777
+            target_path.chmod(permissions)
 
     print("OK")
